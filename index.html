@@ -1,0 +1,1763 @@
+<html lang="ky" class="scroll-smooth"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwMzYxNDM2ODkwNjcwOTkzMTA1MyIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzNhZjJmYzVmYzgxNDVhMWZfaW5kZXguaHRtbC02ODQifSwiZXhwIjoxNzkzNzkzMTcwLCJpYXQiOjE3OTM3ODk1NzAsImFsZyI6IlJTMjU2In0.DJhMdaAYcnL14FRY_iI27l1o4q_-P7vjqJnypbdd2fzeO4ZOALH0h5zCgscHXGGSc4M7lX-0vuvSiZqvxjC5L1wldBVaiKzC2l2bx08E04FiPI5TY-MWK5dcHM5vNTw8hZErtxX7ulQgdTUvcFbk5KXlM3ZFoA-4jNdo67B_jj2UqhH4XVpPUchFVfr2MB-yci7Hk5jHP0uYXVv_i5r_xdRQ-S7oA3C6pRbigxgOnfg5jzD83IJByT8elN_sMLU3xDXFYUXdEI6bYZ1iBxt7SzDLmxM0YY2jxZfMO77CeahchwAnYa6oK70ZwXWf-S7-6VPA29sUS3bjK-vWA53VLg","c_3af2fc5fc8145a1f_index.html-684")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TURGO.KG - Саякат Агенттиги | Travel Agency Kyrgyzstan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0F355C',
+                            darkBlue: '#0A2440',
+                            gold: '#F3AF19',
+                            goldHover: '#D9980C',
+                            teal: '#008BB0',
+                            lightBg: '#F8FAFC'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        heading: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-bg {
+            background: linear-gradient(180deg, rgba(15, 53, 92, 0.8) 0%, rgba(10, 36, 64, 0.9) 100%), 
+                        url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(243, 175, 25, 0.25);
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Plus Jakarta Sans, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.left-1\/2{left:50%}.right-4{right:1rem}.top-0{top:0px}.top-4{top:1rem}.z-10{z-index:10}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-12{margin-bottom:3rem}.mb-16{margin-bottom:4rem}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.mt-3{margin-top:0.75rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-12{height:3rem}.h-14{height:3.5rem}.h-2{height:0.5rem}.h-20{height:5rem}.h-48{height:12rem}.h-5{height:1.25rem}.h-full{height:100%}.h-28{height:7rem}.max-h-48{max-height:12rem}.min-h-\[85vh\]{min-height:85vh}.w-12{width:3rem}.w-14{width:3.5rem}.w-5{width:1.25rem}.w-full{width:100%}.w-28{width:7rem}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-7xl{max-width:80rem}.max-w-4xl{max-width:56rem}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.appearance-none{-webkit-appearance:none;appearance:none}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-12{gap:3rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-8{gap:2rem}.gap-10{gap:2.5rem}.gap-6{gap:1.5rem}.space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-4 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem * var(--tw-space-x-reverse));margin-left:calc(1rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-7 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1.75rem * var(--tw-space-x-reverse));margin-left:calc(1.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.scroll-smooth{scroll-behavior:smooth}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded-b-xl{border-bottom-right-radius:0.75rem;border-bottom-left-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-brand-gold{--tw-border-opacity:1;border-color:rgb(243 175 25 / var(--tw-border-opacity, 1))}.border-brand-gold\/30{border-color:rgb(243 175 25 / 0.3)}.border-brand-gold\/40{border-color:rgb(243 175 25 / 0.4)}.border-gray-100{--tw-border-opacity:1;border-color:rgb(243 244 246 / var(--tw-border-opacity, 1))}.border-gray-200{--tw-border-opacity:1;border-color:rgb(229 231 235 / var(--tw-border-opacity, 1))}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-brand-gold\/20{border-color:rgb(243 175 25 / 0.2)}.bg-black\/30{background-color:rgb(0 0 0 / 0.3)}.bg-brand-blue{--tw-bg-opacity:1;background-color:rgb(15 53 92 / var(--tw-bg-opacity, 1))}.bg-brand-blue\/10{background-color:rgb(15 53 92 / 0.1)}.bg-brand-darkBlue{--tw-bg-opacity:1;background-color:rgb(10 36 64 / var(--tw-bg-opacity, 1))}.bg-brand-gold{--tw-bg-opacity:1;background-color:rgb(243 175 25 / var(--tw-bg-opacity, 1))}.bg-brand-gold\/20{background-color:rgb(243 175 25 / 0.2)}.bg-brand-teal\/10{background-color:rgb(0 139 176 / 0.1)}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-emerald-700{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.bg-gray-50{--tw-bg-opacity:1;background-color:rgb(249 250 251 / var(--tw-bg-opacity, 1))}.bg-gray-700{--tw-bg-opacity:1;background-color:rgb(55 65 81 / var(--tw-bg-opacity, 1))}.bg-sky-500{--tw-bg-opacity:1;background-color:rgb(14 165 233 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-white\/95{background-color:rgb(255 255 255 / 0.95)}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-brand-blue\/5{background-color:rgb(15 53 92 / 0.05)}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-brand-blue{--tw-gradient-from:#0F355C var(--tw-gradient-from-position);--tw-gradient-to:rgb(15 53 92 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-brand-gold{--tw-gradient-from:#F3AF19 var(--tw-gradient-from-position);--tw-gradient-to:rgb(243 175 25 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-brand-darkBlue{--tw-gradient-to:#0A2440 var(--tw-gradient-to-position)}.to-amber-600{--tw-gradient-to:#d97706 var(--tw-gradient-to-position)}.to-brand-teal{--tw-gradient-to:#008BB0 var(--tw-gradient-to-position)}.object-cover{object-fit:cover}.p-0\.5{padding:0.125rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.p-4{padding:1rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-8{padding-left:2rem;padding-right:2rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.pt-2{padding-top:0.5rem}.pt-3{padding-top:0.75rem}.pt-6{padding-top:1.5rem}.pb-8{padding-bottom:2rem}.pt-16{padding-top:4rem}.text-left{text-align:left}.text-center{text-align:center}.font-heading{font-family:Montserrat, sans-serif}.font-sans{font-family:Plus Jakarta Sans, sans-serif}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-brand-blue{--tw-text-opacity:1;color:rgb(15 53 92 / var(--tw-text-opacity, 1))}.text-brand-darkBlue{--tw-text-opacity:1;color:rgb(10 36 64 / var(--tw-text-opacity, 1))}.text-brand-gold{--tw-text-opacity:1;color:rgb(243 175 25 / var(--tw-text-opacity, 1))}.text-brand-teal{--tw-text-opacity:1;color:rgb(0 139 176 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-500{--tw-text-opacity:1;color:rgb(16 185 129 / var(--tw-text-opacity, 1))}.text-gray-200{--tw-text-opacity:1;color:rgb(229 231 235 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.accent-brand-gold{accent-color:#F3AF19}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.drop-shadow{--tw-drop-shadow:drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-lg{--tw-backdrop-blur:blur(16px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:-translate-y-1:hover{--tw-translate-y:-0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:border-brand-gold:hover{--tw-border-opacity:1;border-color:rgb(243 175 25 / var(--tw-border-opacity, 1))}.hover\:bg-brand-darkBlue:hover{--tw-bg-opacity:1;background-color:rgb(10 36 64 / var(--tw-bg-opacity, 1))}.hover\:bg-brand-goldHover:hover{--tw-bg-opacity:1;background-color:rgb(217 152 12 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-800:hover{--tw-bg-opacity:1;background-color:rgb(6 95 70 / var(--tw-bg-opacity, 1))}.hover\:bg-sky-600:hover{--tw-bg-opacity:1;background-color:rgb(2 132 199 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/10:hover{background-color:rgb(255 255 255 / 0.1)}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:text-brand-gold:hover{--tw-text-opacity:1;color:rgb(243 175 25 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:shadow-xl:hover{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-brand-gold:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(243 175 25 / var(--tw-ring-opacity, 1))}.group:hover .group-hover\:bg-brand-gold{--tw-bg-opacity:1;background-color:rgb(243 175 25 / var(--tw-bg-opacity, 1))}.group:hover .group-hover\:text-brand-blue{--tw-text-opacity:1;color:rgb(15 53 92 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:flex{display:flex}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:justify-start{justify-content:flex-start}.sm\:p-8{padding:2rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-left{text-align:left}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xs{font-size:0.75rem;line-height:1rem}}@media (min-width: 768px){.md\:flex{display:flex}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:col-span-7{grid-column:span 7 / span 7}.lg\:inline{display:inline}.lg\:flex{display:flex}.lg\:hidden{display:none}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.lg\:justify-start{justify-content:flex-start}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:text-left{text-align:left}.lg\:text-6xl{font-size:3.75rem;line-height:1}}</style></head>
+<body class="bg-gray-50 text-slate-800 font-sans antialiased">
+
+    <!-- Top Action Bar for Sharing & Code Download -->
+    <div class="bg-brand-gold text-brand-darkBlue text-xs font-bold py-2 px-4 shadow-inner">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-code-branch text-base"></i>
+                <span data-i18n="shareNotice">Досуңуз менен бөлүшүү үчүн сайттын даяр HTML кодун көчүрүп алыңыз:</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="copyHTMLCode()" class="bg-brand-blue hover:bg-brand-darkBlue text-white px-3 py-1 rounded-lg transition flex items-center gap-1.5 text-xs shadow">
+                    <i class="fa-regular fa-copy"></i>
+                    <span data-i18n="copyCodeBtn">Кодду көчүрүү</span>
+                </button>
+                <button onclick="downloadHTMLFile()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1 rounded-lg transition flex items-center gap-1.5 text-xs shadow">
+                    <i class="fa-solid fa-download"></i>
+                    <span data-i18n="downloadBtn">.html жүктөп алуу</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Info Bar -->
+    <div class="bg-brand-darkBlue text-white text-xs sm:text-sm py-2 px-4 border-b border-white/10">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-4">
+                <a href="tel:+996700123456" class="hover:text-brand-gold transition flex items-center gap-1" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-phone text-brand-gold"></i> +996 (700) 123-456
+                </a>
+                <a href="mailto:info@turgo.kg" class="hidden md:flex items-center gap-1 hover:text-brand-gold transition" target="_blank" rel="noopener noreferrer">
+                    <i class="fa-solid fa-envelope text-brand-gold"></i> info@turgo.kg
+                </a>
+                <span class="hidden lg:inline text-gray-400">| <span data-i18n="location">Бишкек ш., Кыргызстан</span></span>
+            </div>
+
+            <!-- Language Switcher -->
+            <div class="flex items-center space-x-3">
+                <span class="text-brand-gold font-medium hidden sm:inline"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="safeTravel">100% Коопсуз саякат</span></span>
+                <span class="text-gray-400 hidden sm:inline">|</span>
+                
+                <div class="inline-flex rounded-lg bg-white/10 p-0.5 border border-white/20">
+                    <button onclick="setLanguage('ky')" id="lang-ky" class="px-2.5 py-1 rounded text-xs font-bold transition bg-brand-gold text-brand-blue shadow">KG</button>
+                    <button onclick="setLanguage('en')" id="lang-en" class="px-2.5 py-1 rounded text-xs font-bold transition text-white hover:bg-white/20">EN</button>
+                    <button onclick="setLanguage('ru')" id="lang-ru" class="px-2.5 py-1 rounded text-xs font-bold transition text-white hover:bg-white/20">RU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md shadow-md border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo Section -->
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-12 h-12 relative flex items-center justify-center">
+                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+                            <circle cx="50" cy="35" r="16" fill="#F3AF19"></circle>
+                            <path d="M20 65 L40 38 L55 58 L70 35 L90 65 Z" fill="#0F355C"></path>
+                            <path d="M40 38 L45 46 L35 48 Z" fill="#FFFFFF" opacity="0.9"></path>
+                            <path d="M70 35 L74 43 L66 45 Z" fill="#FFFFFF" opacity="0.9"></path>
+                            <path d="M15 72 Q 35 62, 55 72 T 95 72" fill="none" stroke="#008BB0" stroke-width="4"></path>
+                            <path d="M45 48 C 65 25, 85 30, 95 45 C 80 45, 65 52, 45 48 Z" fill="#0F355C"></path>
+                            <path d="M40 52 C 60 38, 80 40, 90 55 C 75 53, 60 57, 40 52 Z" fill="#F3AF19"></path>
+                        </svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight leading-none text-brand-blue">
+                            TUR<span class="text-brand-gold">GO</span><span class="text-brand-teal text-xl">.KG</span>
+                        </span>
+                        <span class="text-[10px] sm:text-xs font-semibold tracking-wider text-brand-blue uppercase mt-0.5" data-i18n="logoSub">САЯКАТ АГЕНТТИГИ / TRAVEL AGENCY</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden lg:flex items-center space-x-7 font-medium text-slate-700">
+                    <a href="#home" class="hover:text-brand-gold transition-colors" data-i18n="navHome">Башкы барак</a>
+                    <a href="#services" class="hover:text-brand-gold transition-colors" data-i18n="navServices">Кызматтар</a>
+                    <a href="#packages" class="hover:text-brand-gold transition-colors" data-i18n="navPackages">Тур-Пакеттер</a>
+                    <a href="#calculator" class="hover:text-brand-gold transition-colors" data-i18n="navCalculator">Бааны Эсептөө</a>
+                    <a href="#founders" class="hover:text-brand-gold transition-colors" data-i18n="navFounders">Жетекчилер</a>
+                    <a href="#contact" class="hover:text-brand-gold transition-colors" data-i18n="navContact">Байланыш</a>
+                </nav>
+
+                <!-- CTA Button -->
+                <div class="hidden sm:flex items-center space-x-3">
+                    <a href="#calculator" class="bg-brand-gold hover:bg-brand-goldHover text-brand-blue font-bold px-5 py-2.5 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span data-i18n="navCta">Эсептөө &amp; Брондоо</span>
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="menu-btn" class="lg:hidden text-brand-blue focus:outline-none p-2">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-gray-200 px-4 pt-2 pb-6 space-y-3">
+            <a href="#home" class="block py-2 text-slate-700 font-medium border-b border-gray-100" data-i18n="navHome">Башкы барак</a>
+            <a href="#services" class="block py-2 text-slate-700 font-medium border-b border-gray-100" data-i18n="navServices">Кызматтар</a>
+            <a href="#packages" class="block py-2 text-slate-700 font-medium border-b border-gray-100" data-i18n="navPackages">Тур-Пакеттер</a>
+            <a href="#calculator" class="block py-2 text-slate-700 font-medium border-b border-gray-100" data-i18n="navCalculator">Бааны Эсептөө</a>
+            <a href="#founders" class="block py-2 text-slate-700 font-medium border-b border-gray-100" data-i18n="navFounders">Жетекчилер</a>
+            <a href="#contact" class="block py-2 text-slate-700 font-medium" data-i18n="navContact">Байланыш</a>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="relative hero-bg text-white min-h-[85vh] flex items-center py-20 px-4">
+        <div class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-brand-gold font-semibold text-xs sm:text-sm">
+                    <i class="fa-solid fa-crown"></i> <span data-i18n="heroBadge">VIP Inbound Tourism Service in Kyrgyzstan</span>
+                </div>
+                
+                <h1 class="font-heading font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-tight">
+                    <span data-i18n="heroTitle1">Кыргызстанга Кош Келиңиз!</span> <br>
+                    <span class="text-brand-gold">TURGO.KG</span> <span data-i18n="heroTitle2">менен коопсуз саякаттаңыз</span>
+                </h1>
+                
+                <p class="text-gray-200 text-base sm:text-lg max-w-2xl leading-relaxed" data-i18n="heroDesc">Чет өлкөдөн келген конокторду аэропорттон күтүп алуудан баштап, люкс 4x4 унаалар, тажрыйбалуу гиддер, премиум турак жай жана толук коопсуздук кызматтарын сунуштайбыз.</p>
+
+                <!-- Bullets -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2 text-left font-medium text-xs sm:text-sm">
+                    <div class="flex items-center gap-2 bg-black/30 p-3 rounded-xl border border-white/10">
+                        <i class="fa-solid fa-plane-arrival text-brand-gold text-lg"></i>
+                        <span data-i18n="bullet1">VIP Тозуп алуу</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-black/30 p-3 rounded-xl border border-white/10">
+                        <i class="fa-solid fa-car-side text-brand-gold text-lg"></i>
+                        <span data-i18n="bullet2">4x4 Унаа Арендасы</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-black/30 p-3 rounded-xl border border-white/10">
+                        <i class="fa-solid fa-shield-halved text-brand-gold text-lg"></i>
+                        <span data-i18n="bullet3">Толук Коопсуздук</span>
+                    </div>
+                </div>
+
+                <div class="pt-6 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="#calculator" class="bg-brand-gold hover:bg-brand-goldHover text-brand-blue font-bold px-8 py-4 rounded-xl shadow-lg transition text-center text-base sm:text-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calculator"></i> <span data-i18n="heroCalcBtn">Баасын эсептөө ($ / сом)</span>
+                    </a>
+                    <a href="https://wa.me/996700123456" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition text-center text-base sm:text-lg flex items-center justify-center gap-2" rel="noopener noreferrer">
+                        <i class="fa-brands fa-whatsapp text-2xl"></i> <span>WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Booking Card -->
+            <div class="lg:col-span-5">
+                <div class="glass-card p-6 sm:p-8 rounded-3xl text-slate-800 shadow-2xl">
+                    <div class="flex items-center justify-between border-b pb-4 mb-6 border-gray-200">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-brand-blue" data-i18n="formTitle">Тез сурам жөнөтүү</h3>
+                            <p class="text-xs text-slate-500" data-i18n="formSub">Биз 15 минутта кайра байланышабыз</p>
+                        </div>
+                        <span class="bg-brand-gold/20 text-brand-blue p-3 rounded-2xl">
+                            <i class="fa-solid fa-paper-plane text-xl text-brand-gold"></i>
+                        </span>
+                    </div>
+
+                    <form id="quickForm" onsubmit="handleQuickSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="labelName">Аты-жөнүңүз / Full Name</label>
+                            <input type="text" id="inputName" required="" placeholder="John Doe" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-gold focus:outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="labelPhone">Телефон же WhatsApp</label>
+                            <input type="tel" id="inputPhone" required="" placeholder="+1 234 567 8900" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-gold focus:outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1" data-i18n="labelDates">Келүү датасы &amp; Күндөр</label>
+                            <input type="text" id="inputDates" placeholder="15-May, 7 days" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-gold focus:outline-none text-sm">
+                        </div>
+                        <button type="submit" class="w-full bg-brand-blue hover:bg-brand-darkBlue text-white font-bold py-3.5 rounded-xl transition shadow-md" data-i18n="formSubmit">Байланышуу &amp; Тур Брондоо</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="services" class="py-20 px-4 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-brand-teal font-bold tracking-wider uppercase text-sm" data-i18n="servSub">Биздин толук кызматтар</span>
+                <h2 class="font-heading font-extrabold text-3xl sm:text-4xl text-brand-blue mt-2" data-i18n="servTitle">Чет Элдик Туристтер Үчүн VIP Кызматтар</h2>
+                <p class="text-slate-600 mt-4" data-i18n="servDesc">Кыргызстанга саякатыңызды максималдуу комфорттуу, коопсуз жана унутулгус кылуу үчүн бардык маселелерди өз мойнубузга алабыз.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Service 1 -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:border-brand-gold transition duration-300 hover:shadow-xl group">
+                    <div class="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center text-brand-blue mb-6 group-hover:bg-brand-gold group-hover:text-brand-blue transition">
+                        <i class="fa-solid fa-plane-arrival text-2xl"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-xl text-brand-blue mb-2" data-i18n="s1Title">1. Аэропорттон Тозуп Алуу</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n="s1Desc">Манас аэропортунан VIP тозуп алуу, багаж менен жардам берүү жана ыңгайлуу трансфер.</p>
+                    <span class="text-xs font-semibold text-brand-teal bg-brand-teal/10 px-3 py-1 rounded-full" data-i18n="s1Price">Баасы: $40 - $60 ар бир рейс</span>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:border-brand-gold transition duration-300 hover:shadow-xl group">
+                    <div class="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center text-brand-blue mb-6 group-hover:bg-brand-gold group-hover:text-brand-blue transition">
+                        <i class="fa-solid fa-car text-2xl"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-xl text-brand-blue mb-2" data-i18n="s2Title">2. Унаа Арендасы &amp; Айдоочу</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n="s2Desc">Тоолуу жолдорго ылайыкталган 4x4 Жол тандабастар (Lexus, Toyota Land Cruiser) тажрыйбалуу айдоочусу менен.</p>
+                    <span class="text-xs font-semibold text-brand-teal bg-brand-teal/10 px-3 py-1 rounded-full" data-i18n="s2Price">Баасы: $100 - $140 / күнүнө</span>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:border-brand-gold transition duration-300 hover:shadow-xl group">
+                    <div class="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center text-brand-blue mb-6 group-hover:bg-brand-gold group-hover:text-brand-blue transition">
+                        <i class="fa-solid fa-user-tie text-2xl"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-xl text-brand-blue mb-2" data-i18n="s3Title">3. Кесипкөй Гиддер</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n="s3Desc">Англис, Немис, Араб, Орус тилдеринде эркин сүйлөгөн тарыхты жана маданиятты мыкты билген гиддер.</p>
+                    <span class="text-xs font-semibold text-brand-teal bg-brand-teal/10 px-3 py-1 rounded-full" data-i18n="s3Price">Баасы: $70 - $100 / күнүнө</span>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 hover:border-brand-gold transition duration-300 hover:shadow-xl group">
+                    <div class="w-14 h-14 bg-brand-blue/10 rounded-2xl flex items-center justify-center text-brand-blue mb-6 group-hover:bg-brand-gold group-hover:text-brand-blue transition">
+                        <i class="fa-solid fa-shield-halved text-2xl"></i>
+                    </div>
+                    <h3 class="font-heading font-bold text-xl text-brand-blue mb-2" data-i18n="s4Title">4. Турак жай &amp; Коопсуздук</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n="s4Desc">Мыкты мейманканаларды, VIP боз үйлөрдү брондоо жана саякат маалында жеке коопсуздукту камсыздоо.</p>
+                    <span class="text-xs font-semibold text-brand-teal bg-brand-teal/10 px-3 py-1 rounded-full" data-i18n="s4Price">Коопсуздук: $100 / күнүнө</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALCULATOR SECTION -->
+    <section id="calculator" class="py-20 px-4 bg-slate-900 text-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto relative z-10">
+            
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-brand-gold font-bold tracking-wider uppercase text-sm" data-i18n="calcSub">Онлайн бааны эсептөө</span>
+                <h2 class="font-heading font-extrabold text-3xl sm:text-4xl text-white mt-2" data-i18n="calcTitle">Калькулятор: Саякатыңыз канча турат?</h2>
+                <p class="text-gray-400 mt-2" data-i18n="calcDesc">Каалаган кызматтарыңызды тандап, болжолдуу сумманы заматта эсептеңиз.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Controls -->
+                <div class="lg:col-span-7 bg-white/5 backdrop-blur-lg p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+                    
+                    <!-- Days Slider -->
+                    <div>
+                        <label class="flex justify-between text-sm font-bold text-gray-300 mb-2">
+                            <span data-i18n="calcDaysLabel">Саякаттын узактыгы (Күндөр):</span>
+                            <span id="daysVal" class="text-brand-gold text-lg font-extrabold">5 күн</span>
+                        </label>
+                        <input type="range" id="days" min="1" max="14" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-gold" oninput="calculateTotal()">
+                    </div>
+
+                    <!-- Guests Slider -->
+                    <div>
+                        <label class="flex justify-between text-sm font-bold text-gray-300 mb-2">
+                            <span data-i18n="calcGuestsLabel">Туристтердин саны:</span>
+                            <span id="guestsVal" class="text-brand-gold text-lg font-extrabold">2 киши</span>
+                        </label>
+                        <input type="range" id="guests" min="1" max="10" value="2" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-gold" oninput="calculateTotal()">
+                    </div>
+
+                    <!-- Services Checkboxes -->
+                    <div class="space-y-3 pt-2">
+                        <span class="text-sm font-bold text-gray-300 block mb-2" data-i18n="calcChooseServices">Керектүү кызматтарды белгилеңиз:</span>
+                        
+                        <label class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="srvTransfer" checked="" onchange="calculateTotal()" class="w-5 h-5 accent-brand-gold rounded">
+                                <span class="text-sm font-medium" data-i18n="srv1Name">Аэропорт трансфери (Тозуп алуу &amp; Узатуу)</span>
+                            </div>
+                            <span class="text-xs text-brand-gold font-bold">+$50</span>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="srvCar" checked="" onchange="calculateTotal()" class="w-5 h-5 accent-brand-gold rounded">
+                                <span class="text-sm font-medium" data-i18n="srv2Name">4x4 Жол тандабас унаа + Айдоочу</span>
+                            </div>
+                            <span class="text-xs text-brand-gold font-bold">+$120 / day</span>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="srvGuide" checked="" onchange="calculateTotal()" class="w-5 h-5 accent-brand-gold rounded">
+                                <span class="text-sm font-medium" data-i18n="srv3Name">Кесипкөй тил билген Гид</span>
+                            </div>
+                            <span class="text-xs text-brand-gold font-bold">+$80 / day</span>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="srvStay" checked="" onchange="calculateTotal()" class="w-5 h-5 accent-brand-gold rounded">
+                                <span class="text-sm font-medium" data-i18n="srv4Name">Турак жай (Отель / VIP Боз үй)</span>
+                            </div>
+                            <span class="text-xs text-brand-gold font-bold">+$70 / person / day</span>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" id="srvSecurity" onchange="calculateTotal()" class="w-5 h-5 accent-brand-gold rounded">
+                                <span class="text-sm font-medium" data-i18n="srv5Name">Жеке коопсуздук (Security service)</span>
+                            </div>
+                            <span class="text-xs text-brand-gold font-bold">+$100 / day</span>
+                        </label>
+                    </div>
+
+                </div>
+
+                <!-- Price Box -->
+                <div class="lg:col-span-5 bg-gradient-to-br from-brand-blue to-brand-darkBlue p-8 rounded-3xl border border-brand-gold/30 shadow-2xl space-y-6">
+                    <h3 class="text-xl font-bold text-white border-b border-white/10 pb-4" data-i18n="summaryTitle">Эсептелген Сумма / Estimated Total</h3>
+
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <div class="flex justify-between">
+                            <span data-i18n="sumDays">Күндөр саны:</span>
+                            <span id="summaryDays" class="text-white font-semibold">5 күн</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span data-i18n="sumGuests">Туристтер:</span>
+                            <span id="summaryGuests" class="text-white font-semibold">2 киши</span>
+                        </div>
+                        <div class="flex justify-between border-t border-white/10 pt-3">
+                            <span data-i18n="sumPerDay">1 күнүнө орточо баа:</span>
+                            <span id="perDayPrice" class="text-brand-gold font-bold">$340</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/30 p-6 rounded-2xl text-center border border-brand-gold/40">
+                        <span class="text-xs text-gray-400 uppercase font-semibold block mb-1" data-i18n="sumGrandTotal">Жалпы улуттук жана долларлык баасы:</span>
+                        <div class="font-heading font-extrabold text-4xl text-brand-gold" id="totalUSD">$1&nbsp;750</div>
+                        <div class="text-lg text-emerald-400 font-semibold mt-1" id="totalKGS">~ 155&nbsp;750 KGS</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button onclick="bookCalculatedTour('whatsapp')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow transition text-center flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp
+                        </button>
+                        <button onclick="bookCalculatedTour('telegram')" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-xl shadow transition text-center flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-brands fa-telegram text-lg"></i> Telegram
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- PACKAGES SECTION -->
+    <section id="packages" class="py-20 px-4 bg-gray-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-brand-teal font-bold tracking-wider uppercase text-sm" data-i18n="pkgSub">Даяр Тур Программалары</span>
+                <h2 class="font-heading font-extrabold text-3xl sm:text-4xl text-brand-blue mt-2" data-i18n="pkgTitle">Эң Популярдуу Тур-Пакеттер</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Package 1 -->
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+                    <div>
+                        <div class="h-48 relative overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&amp;w=800&amp;auto=format&amp;fit=crop" class="w-full h-full object-cover">
+                            <span class="absolute top-4 right-4 bg-brand-blue text-brand-gold text-xs font-bold px-3 py-1.5 rounded-full" data-i18n="p1Duration">3 Күн / 2 Түн</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-heading font-bold text-xl text-brand-blue mb-2">Express Kyrgyzstan Tour</h3>
+                            <p class="text-slate-500 text-xs mb-4" data-i18n="p1Route">Бишкек - Ала-Арча - Бурана - Ысык-Көл</p>
+                            <ul class="space-y-2.5 text-sm text-slate-700 mb-6">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p1f1">VIP Аэропорт трансфер</span></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p1f2">4x4 Комфорт унаа</span></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p1f3">Жеке гид</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 block" data-i18n="pricePerPerson">Баасы киши башына:</span>
+                            <span class="font-heading font-extrabold text-2xl text-brand-blue">$450</span>
+                        </div>
+                        <a href="https://wa.me/996700123456" target="_blank" class="bg-brand-gold hover:bg-brand-goldHover text-brand-blue font-bold px-4 py-2.5 rounded-xl text-sm transition" data-i18n="bookBtn" rel="noopener noreferrer">Брондоо</a>
+                    </div>
+                </div>
+
+                <!-- Package 2 -->
+                <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-brand-gold flex flex-col justify-between relative">
+                    <span class="bg-brand-gold text-brand-blue text-xs font-extrabold px-4 py-1 rounded-b-xl absolute top-0 left-1/2 -translate-x-1/2 z-10 uppercase tracking-widest shadow" data-i18n="bestSeller">Эң Көп Сатылган</span>
+                    <div>
+                        <div class="h-48 relative overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=80&amp;w=800&amp;auto=format&amp;fit=crop" class="w-full h-full object-cover">
+                            <span class="absolute top-4 right-4 bg-brand-blue text-brand-gold text-xs font-bold px-3 py-1.5 rounded-full" data-i18n="p2Duration">7 Күн / 6 Түн</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-heading font-bold text-xl text-brand-blue mb-2">Nomadic Experience</h3>
+                            <p class="text-slate-500 text-xs mb-4" data-i18n="p2Route">Ысык-Көл - Барскоон - Каракөл - Сон-Көл</p>
+                            <ul class="space-y-2.5 text-sm text-slate-700 mb-6">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p2f1">Толук VIP Тейлөө</span></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p2f2">VIP Боз үй ашуусу</span></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p2f3">Атчандар &amp; Бүркүтчүлөр шоусу</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-brand-blue/5 border-t border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 block" data-i18n="pricePerPerson">Баасы киши башына:</span>
+                            <span class="font-heading font-extrabold text-2xl text-brand-blue">$950</span>
+                        </div>
+                        <a href="https://wa.me/996700123456" target="_blank" class="bg-brand-gold hover:bg-brand-goldHover text-brand-blue font-bold px-5 py-2.5 rounded-xl text-sm transition" data-i18n="bookBtn" rel="noopener noreferrer">Брондоо</a>
+                    </div>
+                </div>
+
+                <!-- Package 3 -->
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 flex flex-col justify-between hover:-translate-y-1 transition duration-300">
+                    <div>
+                        <div class="h-48 relative overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&amp;w=800&amp;auto=format&amp;fit=crop" class="w-full h-full object-cover">
+                            <span class="absolute top-4 right-4 bg-brand-blue text-brand-gold text-xs font-bold px-3 py-1.5 rounded-full" data-i18n="p3Duration">10 Күн / 9 Түн</span>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-heading font-bold text-xl text-brand-blue mb-2">Grand Kyrgyzstan Explorer</h3>
+                            <p class="text-slate-500 text-xs mb-4" data-i18n="p3Route">Бишкек - Ысык-Көл - Таш-Рабат - Ош</p>
+                            <ul class="space-y-2.5 text-sm text-slate-700 mb-6">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p3f1">Эксклюзивдүү экспедиция</span></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p3f2">Жеке Security Escort</span></li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> <span data-i18n="p3f3">Премиум отелдер &amp; Боз үйлөр</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 block" data-i18n="pricePerPerson">Баасы киши башына:</span>
+                            <span class="font-heading font-extrabold text-2xl text-brand-blue">$1,400</span>
+                        </div>
+                        <a href="https://wa.me/996700123456" target="_blank" class="bg-brand-gold hover:bg-brand-goldHover text-brand-blue font-bold px-4 py-2.5 rounded-xl text-sm transition" data-i18n="bookBtn" rel="noopener noreferrer">Брондоо</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOUNDERS / LEADERSHIP SECTION -->
+    <section id="founders" class="py-20 px-4 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-brand-teal font-bold tracking-wider uppercase text-sm" data-i18n="foundersSub">Компаниянын негиздөөчүлөрү</span>
+                <h2 class="font-heading font-extrabold text-3xl sm:text-4xl text-brand-blue mt-2" data-i18n="foundersTitle">TURGO.KG Жетекчилери</h2>
+                <p class="text-slate-600 mt-3" data-i18n="foundersDesc">Биз туристтердин коопсуздугуна, жогорку сервиске жана сапатка кепилдик беребиз.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Marsel Card -->
+                <div class="bg-slate-50 rounded-3xl p-8 border border-gray-200 shadow-lg flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left hover:border-brand-gold transition">
+                    <div class="w-28 h-28 rounded-2xl bg-gradient-to-br from-brand-blue to-brand-teal flex items-center justify-center text-white font-extrabold text-4xl shadow-md shrink-0">
+                        M
+                    </div>
+                    <div class="space-y-2">
+                        <span class="bg-brand-gold/20 text-brand-blue text-xs font-bold px-3 py-1 rounded-full inline-block" data-i18n="marselRole">Co-Founder &amp; Managing Director</span>
+                        <h3 class="font-heading font-extrabold text-2xl text-brand-blue">Marsel</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed" data-i18n="marselBio">Чет элдик туризм, коопсуздук системасы жана стратегиялык өнүктүрүү боюнча башкы жетекчи.</p>
+                        <div class="pt-2 flex items-center justify-center sm:justify-start gap-3 text-brand-blue text-sm">
+                            <a href="#" class="hover:text-brand-gold"><i class="fa-brands fa-linkedin"></i></a>
+                            <a href="#" class="hover:text-brand-gold"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="https://t.me/marsel" class="hover:text-brand-gold" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-telegram"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aftandil Card -->
+                <div class="bg-slate-50 rounded-3xl p-8 border border-gray-200 shadow-lg flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left hover:border-brand-gold transition">
+                    <div class="w-28 h-28 rounded-2xl bg-gradient-to-br from-brand-gold to-amber-600 flex items-center justify-center text-brand-blue font-extrabold text-4xl shadow-md shrink-0">
+                        A
+                    </div>
+                    <div class="space-y-2">
+                        <span class="bg-brand-gold/20 text-brand-blue text-xs font-bold px-3 py-1 rounded-full inline-block" data-i18n="aftandilRole">Co-Founder &amp; Operations Director</span>
+                        <h3 class="font-heading font-extrabold text-2xl text-brand-blue">Aftandil</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed" data-i18n="aftandilBio">Маршруттарды пландаштыруу, логистика, VIP трансфер жана гиддерди координациялоо жетекчиси.</p>
+                        <div class="pt-2 flex items-center justify-center sm:justify-start gap-3 text-brand-blue text-sm">
+                            <a href="#" class="hover:text-brand-gold"><i class="fa-brands fa-linkedin"></i></a>
+                            <a href="#" class="hover:text-brand-gold"><i class="fa-brands fa-instagram"></i></a>
+                            <a href="https://t.me/aftandil" class="hover:text-brand-gold" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-telegram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER & CONTACT -->
+    <footer id="contact" class="bg-brand-darkBlue text-white pt-16 pb-8 border-t border-brand-gold/20">
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+            
+            <div class="space-y-4">
+                <div class="flex items-center space-x-2">
+                    <span class="font-heading font-extrabold text-2xl tracking-tight text-white">
+                        TUR<span class="text-brand-gold">GO</span><span class="text-brand-teal text-lg">.KG</span>
+                    </span>
+                </div>
+                <p class="text-xs text-gray-400 leading-relaxed" data-i18n="footerDesc">Кыргызстанга келген чет элдик туристтерге жогорку деңгээлдеги VIP сервис, гид, унаа арендасы жана толук коопсуздук кызматтарын көрсөтүүчү саякат агенттиги.</p>
+            </div>
+
+            <div>
+                <h4 class="font-heading font-bold text-base text-brand-gold mb-4" data-i18n="navHome">Башкы барак</h4>
+                <ul class="space-y-2 text-xs text-gray-300">
+                    <li><a href="#services" class="hover:text-brand-gold transition" data-i18n="navServices">Кызматтар</a></li>
+                    <li><a href="#calculator" class="hover:text-brand-gold transition" data-i18n="navCalculator">Бааны Эсептөө</a></li>
+                    <li><a href="#packages" class="hover:text-brand-gold transition" data-i18n="navPackages">Тур-Пакеттер</a></li>
+                    <li><a href="#founders" class="hover:text-brand-gold transition" data-i18n="navFounders">Жетекчилер</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-heading font-bold text-base text-brand-gold mb-4" data-i18n="navServices">Кызматтар</h4>
+                <ul class="space-y-2 text-xs text-gray-300">
+                    <li>• VIP Airport Transfer</li>
+                    <li>• 4x4 Off-Road SUVs</li>
+                    <li>• Multilingual Guides</li>
+                    <li>• Security Escort</li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="font-heading font-bold text-base text-brand-gold mb-4" data-i18n="navContact">Байланыш</h4>
+                <ul class="space-y-3 text-xs text-gray-300">
+                    <li class="flex items-start gap-2">
+                        <i class="fa-solid fa-location-dot text-brand-gold mt-1"></i>
+                        <span data-i18n="address">Кыргыз Республикасы, Бишкек шаары</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-phone text-brand-gold"></i>
+                        <span>+996 (700) 123-456</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fa-solid fa-envelope text-brand-gold"></i>
+                        <span>info@turgo.kg</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-400">
+            <p>© 2026 TURGO.KG Travel Agency. Founders: Marsel &amp; Aftandil.</p>
+        </div>
+    </footer>
+
+    <!-- CODE EXPORT MODAL -->
+    <div id="codeModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full border border-brand-gold/30 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                <h3 class="font-heading font-bold text-xl text-brand-gold">
+                    <i class="fa-solid fa-code"></i> HTML Веб-сайт коду
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white text-xl">×</button>
+            </div>
+            <p class="text-xs text-gray-300">
+                Төмөнкү кодду копировать этип же .html форматында жүктөп алып Телеграм/WhatsApp аркылуу досуңузга же программалоочуга жөнөтүңүз.
+            </p>
+            <div class="bg-black p-4 rounded-xl text-emerald-400 text-xs font-mono max-h-48 overflow-y-auto">
+                <code id="modalCodePreview">HTML Code loading...</code>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="copyHTMLCode()" class="bg-brand-gold text-brand-blue font-bold px-4 py-2.5 rounded-xl text-xs hover:bg-brand-goldHover">
+                    <i class="fa-regular fa-copy"></i> Көчүрүү
+                </button>
+                <button onclick="closeModal()" class="bg-white/10 text-white px-4 py-2.5 rounded-xl text-xs hover:bg-white/20">
+                    Жабуу
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT: TRANSLATIONS, CALCULATOR & UTILITIES -->
+    <script>
+        // 100% COMPLETE TRANSLATION DICTIONARY (KY, EN, RU)
+        const i18nData = {
+            ky: {
+                shareNotice: "Досуңуз менен бөлүшүү үчүн сайттын даяр HTML кодун көчүрүп алыңыз:",
+                copyCodeBtn: "Кодду көчүрүү",
+                downloadBtn: ".html жүктөп алуу",
+                location: "Бишкек ш., Кыргызстан",
+                safeTravel: "100% Коопсуз саякат",
+                logoSub: "САЯКАТ АГЕНТТИГИ / TRAVEL AGENCY",
+                navHome: "Башкы барак",
+                navServices: "Кызматтар",
+                navPackages: "Тур-Пакеттер",
+                navCalculator: "Бааны Эсептөө",
+                navFounders: "Жетекчилер",
+                navContact: "Байланыш",
+                navCta: "Эсептөө & Брондоо",
+                heroBadge: "VIP Inbound Tourism Service in Kyrgyzstan",
+                heroTitle1: "Кыргызстанга Кош Келиңиз!",
+                heroTitle2: "менен коопсуз саякаттаңыз",
+                heroDesc: "Чет өлкөдөн келген конокторду аэропорттон күтүп алуудан баштап, люкс 4x4 унаалар, тажрыйбалуу гиддер, премиум турак жай жана толук коопсуздук кызматтарын сунуштайбыз.",
+                bullet1: "VIP Тозуп алуу",
+                bullet2: "4x4 Унаа Арендасы",
+                bullet3: "Толук Коопсуздук",
+                heroCalcBtn: "Баасын эсептөө ($ / сом)",
+                formTitle: "Тез сурам жөнөтүү",
+                formSub: "Биз 15 минутта кайра байланышабыз",
+                labelName: "Аты-жөнүңүз / Full Name",
+                labelPhone: "Телефон же WhatsApp",
+                labelDates: "Келүү датасы & Күндөр",
+                formSubmit: "Байланышуу & Тур Брондоо",
+                servSub: "Биздин толук кызматтар",
+                servTitle: "Чет Элдик Туристтер Үчүн VIP Кызматтар",
+                servDesc: "Кыргызстанга саякатыңызды максималдуу комфорттуу, коопсуз жана унутулгус кылуу үчүн бардык маселелерди өз мойнубузга алабыз.",
+                s1Title: "1. Аэропорттон Тозуп Алуу",
+                s1Desc: "Манас аэропортунан VIP тозуп алуу, багаж менен жардам берүү жана ыңгайлуу трансфер.",
+                s1Price: "Баасы: $40 - $60 ар бир рейс",
+                s2Title: "2. Унаа Арендасы & Айдоочу",
+                s2Desc: "Тоолуу жолдорго ылайыкталган 4x4 Жол тандабастар (Lexus, Toyota Land Cruiser) тажрыйбалуу айдоочусу менен.",
+                s2Price: "Баасы: $100 - $140 / күнүнө",
+                s3Title: "3. Кесипкөй Гиддер",
+                s3Desc: "Англис, Немис, Араб, Орус тилдеринде эркин сүйлөгөн тарыхты жана маданиятты мыкты билген гиддер.",
+                s3Price: "Баасы: $70 - $100 / күнүнө",
+                s4Title: "4. Турак жай & Коопсуздук",
+                s4Desc: "Мыкты мейманканаларды, VIP боз үйлөрдү брондоо жана саякат маалында жеке коопсуздукту камсыздоо.",
+                s4Price: "Коопсуздук: $100 / күнүнө",
+                calcSub: "Онлайн бааны эсептөө",
+                calcTitle: "Калькулятор: Саякатыңыз канча турат?",
+                calcDesc: "Каалаган кызматтарыңызды тандап, болжолдуу сумманы заматта эсептеңиз.",
+                calcDaysLabel: "Саякаттын узактыгы (Күндөр):",
+                calcGuestsLabel: "Туристтердин саны:",
+                calcChooseServices: "Керектүү кызматтарды белгилеңиз:",
+                srv1Name: "Аэропорт трансфери (Тозуп алуу & Узатуу)",
+                srv2Name: "4x4 Жол тандабас унаа + Айдоочу",
+                srv3Name: "Кесипкөй тил билген Гид",
+                srv4Name: "Турак жай (Отель / VIP Боз үй)",
+                srv5Name: "Жеке коопсуздук (Security service)",
+                summaryTitle: "Эсептелген Сумма / Estimated Total",
+                sumDays: "Күндөр саны:",
+                sumGuests: "Туристтер:",
+                sumPerDay: "1 күнүнө орточо баа:",
+                sumGrandTotal: "Жалпы улуттук жана долларлык баасы:",
+                pkgSub: "Даяр Тур Программалары",
+                pkgTitle: "Эң Популярдуу Тур-Пакеттер",
+                p1Duration: "3 Күн / 2 Түн",
+                p1Route: "Бишкек - Ала-Арча - Бурана - Ысык-Көл",
+                p1f1: "VIP Аэропорт трансфер",
+                p1f2: "4x4 Комфорт унаа",
+                p1f3: "Жеке гид",
+                p2Duration: "7 Күн / 6 Түн",
+                p2Route: "Ысык-Көл - Барскоон - Каракөл - Сон-Көл",
+                p2f1: "Толук VIP Тейлөө",
+                p2f2: "VIP Боз үй ашуусу",
+                p2f3: "Атчандар & Бүркүтчүлөр шоусу",
+                p3Duration: "10 Күн / 9 Түн",
+                p3Route: "Бишкек - Ысык-Көл - Таш-Рабат - Ош",
+                p3f1: "Эксклюзивдүү экспедиция",
+                p3f2: "Жеке Security Escort",
+                p3f3: "Премиум отелдер & Боз үйлөр",
+                pricePerPerson: "Баасы киши башына:",
+                bookBtn: "Брондоо",
+                bestSeller: "Эң Көп Сатылган",
+                foundersSub: "Компаниянын негиздөөчүлөрү",
+                foundersTitle: "TURGO.KG Жетекчилери",
+                foundersDesc: "Биз туристтердин коопсуздугуна, жогорку сервиске жана сапатка кепилдик беребиз.",
+                marselRole: "Co-Founder & Managing Director",
+                marselBio: "Чет элдик туризм, коопсуздук системасы жана стратегиялык өнүктүрүү боюнча башкы жетекчи.",
+                aftandilRole: "Co-Founder & Operations Director",
+                aftandilBio: "Маршруттарды пландаштыруу, логистика, VIP трансфер жана гиддерди координациялоо жетекчиси.",
+                footerDesc: "Кыргызстанга келген чет элдик туристтерге жогорку деңгээлдеги VIP сервис, гид, унаа арендасы жана толук коопсуздук кызматтарын көрсөтүүчү саякат агенттиги.",
+                address: "Кыргыз Республикасы, Бишкек шаары"
+            },
+            en: {
+                shareNotice: "Copy HTML source code to easily share with your friends or developer:",
+                copyCodeBtn: "Copy HTML Code",
+                downloadBtn: "Download .html",
+                location: "Bishkek, Kyrgyzstan",
+                safeTravel: "100% Safe & Secure Travel",
+                logoSub: "TRAVEL AGENCY KYRGYZSTAN",
+                navHome: "Home",
+                navServices: "Services",
+                navPackages: "Tour Packages",
+                navCalculator: "Price Calculator",
+                navFounders: "Leadership",
+                navContact: "Contact",
+                navCta: "Calculate & Book",
+                heroBadge: "VIP Inbound Tourism Service in Kyrgyzstan",
+                heroTitle1: "Welcome to Kyrgyzstan!",
+                heroTitle2: "Travel Safely with TURGO.KG",
+                heroDesc: "Complete inbound travel support: Airport VIP pick-up, luxury 4x4 SUV rental, multilingual guides, top accommodation & personal security.",
+                bullet1: "VIP Airport Pickup",
+                bullet2: "4x4 Off-Road SUV",
+                bullet3: "Personal Security",
+                heroCalcBtn: "Calculate Tour Price ($ / KGS)",
+                formTitle: "Quick Booking Request",
+                formSub: "We reply within 15 minutes",
+                labelName: "Full Name",
+                labelPhone: "Phone or WhatsApp",
+                labelDates: "Arrival Date & Duration",
+                formSubmit: "Contact & Book Tour",
+                servSub: "Our Full Range of Services",
+                servTitle: "VIP Services for International Tourists",
+                servDesc: "We take care of every detail to make your trip to Kyrgyzstan comfortable, safe, and unforgettable.",
+                s1Title: "1. VIP Airport Pick-up",
+                s1Desc: "Meet & greet at Manas Airport, luggage assistance, and comfortable hotel transfer.",
+                s1Price: "Price: $40 - $60 per flight",
+                s2Title: "2. 4x4 Car Rental with Driver",
+                s2Desc: "Off-road SUVs (Lexus, Toyota Land Cruiser) optimized for mountain routes with experienced drivers.",
+                s2Price: "Price: $100 - $140 / day",
+                s3Title: "3. Multilingual Tour Guides",
+                s3Desc: "Professional guides fluent in English, German, Arabic, and Russian with deep cultural knowledge.",
+                s3Price: "Price: $70 - $100 / day",
+                s4Title: "4. Accommodation & Security",
+                s4Desc: "5-star hotel & VIP Yurt camp bookings + personal security guard escort on demand.",
+                s4Price: "Security: $100 / day",
+                calcSub: "Instant Cost Estimator",
+                calcTitle: "Calculator: How Much Will Your Tour Cost?",
+                calcDesc: "Select your duration, guests, and desired services to get an instant estimate.",
+                calcDaysLabel: "Tour Duration (Days):",
+                calcGuestsLabel: "Number of Guests:",
+                calcChooseServices: "Select Required Services:",
+                srv1Name: "Airport Transfer (Pick-up & Drop-off)",
+                srv2Name: "4x4 SUV Rental + Driver",
+                srv3Name: "Multilingual Professional Guide",
+                srv4Name: "Accommodation (Hotel / VIP Yurt)",
+                srv5Name: "Personal Escort Security Service",
+                summaryTitle: "Estimated Total Price",
+                sumDays: "Duration:",
+                sumGuests: "Guests:",
+                sumPerDay: "Average Daily Rate:",
+                sumGrandTotal: "Total Cost in USD and KGS:",
+                pkgSub: "Ready-Made Itineraries",
+                pkgTitle: "Popular Tour Packages",
+                p1Duration: "3 Days / 2 Nights",
+                p1Route: "Bishkek - Ala-Archa - Burana - Issyk-Kul",
+                p1f1: "VIP Airport Transfer",
+                p1f2: "Comfortable 4x4 SUV",
+                p1f3: "Private Guide",
+                p2Duration: "7 Days / 6 Nights",
+                p2Route: "Issyk-Kul - Barskoon - Karakol - Son-Kul",
+                p2f1: "Full VIP Treatment",
+                p2f2: "Son-Kul VIP Yurt Stay",
+                p2f3: "Horse & Eagle Hunting Show",
+                p3Duration: "10 Days / 9 Nights",
+                p3Route: "Bishkek - Issyk-Kul - Tash-Rabat - Osh",
+                p3f1: "Grand Expedition Across Kyrgyzstan",
+                p3f2: "Personal Security Escort",
+                p3f3: "Premium Hotels & Yurt Camps",
+                pricePerPerson: "Price per person:",
+                bookBtn: "Book Now",
+                bestSeller: "Best Seller",
+                foundersSub: "Meet Our Team",
+                foundersTitle: "TURGO.KG Founders",
+                foundersDesc: "We personally guarantee maximum safety, quality, and hospitality for all our guests.",
+                marselRole: "Co-Founder & Managing Director",
+                marselBio: "Head of Strategic Development, Inbound Tourism Logistics, and Safety Management.",
+                aftandilRole: "Co-Founder & Operations Director",
+                aftandilBio: "Head of Route Operations, VIP Airport Services, and Multilingual Guide Coordination.",
+                footerDesc: "Premier travel agency providing VIP inbound tour management, 4x4 rental, multilingual guides, and security services in Kyrgyzstan.",
+                address: "Bishkek City, Kyrgyz Republic"
+            },
+            ru: {
+                shareNotice: "Скопируйте HTML-код сайта, чтобы поделиться с другом или разработчиком:",
+                copyCodeBtn: "Скопировать код",
+                downloadBtn: "Скачать .html",
+                location: "г. Бишкек, Кыргызстан",
+                safeTravel: "100% Безопасное путешествие",
+                logoSub: "ТУРАГЕНТСТВО / TRAVEL AGENCY",
+                navHome: "Главная",
+                navServices: "Услуги",
+                navPackages: "Тур-Пакеты",
+                navCalculator: "Расчет стоимости",
+                navFounders: "Руководители",
+                navContact: "Контакты",
+                navCta: "Рассчитать и Бронить",
+                heroBadge: "VIP Прием туристов в Кыргызстане",
+                heroTitle1: "Добро пожаловать в Кыргызстан!",
+                heroTitle2: "Путешествуйте безопасно с TURGO.KG",
+                heroDesc: "Полный спектр услуг для иностранных гостей: встреча в аэропорту, внедорожники 4x4, гиды-переводчики, отели/юрты и личная безопасность.",
+                bullet1: "VIP Встреча в аэропорту",
+                bullet2: "Аренда 4x4 с водителем",
+                bullet3: "Личная безопасность",
+                heroCalcBtn: "Рассчитать стоимость ($ / сом)",
+                formTitle: "Быстрая заявка",
+                formSub: "Мы свяжемся с вами за 15 минут",
+                labelName: "Ваше Имя / Full Name",
+                labelPhone: "Телефон или WhatsApp",
+                labelDates: "Дата прилета и количество дней",
+                formSubmit: "Связаться и Забронировать",
+                servSub: "Полный спектр услуг",
+                servTitle: "VIP Услуги для Иностранных Туристов",
+                servDesc: "Мы берем на себя все организационные вопросы, чтобы сделать ваше путешествие комфортным и безопасным.",
+                s1Title: "1. Встреча в Аэропорту",
+                s1Desc: "VIP встреча в аэропорту Манас, помощь с багажом и комфортабельный трансфер.",
+                s1Price: "Цена: $40 - $60 за рейс",
+                s2Title: "2. Аренда Внедорожников 4x4",
+                s2Desc: "Подготовленные внедорожники (Lexus, Toyota Land Cruiser) с опытными водителями.",
+                s2Price: "Цена: $100 - $140 / день",
+                s3Title: "3. Профессиональные Гиды",
+                s3Desc: "Гиды, свободно владеющие английским, немецким, арабским и русским языками.",
+                s3Price: "Цена: $70 - $100 / день",
+                s4Title: "4. Проживание и Безопасность",
+                s4Desc: "Бронирование отелей, VIP юрточных лагерей и предоставление личной охраны.",
+                s4Price: "Охрана: $100 / день",
+                calcSub: "Онлайн Калькулятор",
+                calcTitle: "Калькулятор: Сколько стоит ваш тур?",
+                calcDesc: "Выберите параметры тура и за секунду рассчитайте стоимость.",
+                calcDaysLabel: "Продолжительность (Дни):",
+                calcGuestsLabel: "Количество туристов:",
+                calcChooseServices: "Выберите необходимые услуги:",
+                srv1Name: "Трансфер из/в Аэропорт",
+                srv2Name: "Внедорожник 4x4 + Водитель",
+                srv3Name: "Профессиональный гид-переводчик",
+                srv4Name: "Проживание (Отель / VIP Юрта)",
+                srv5Name: "Личная охрана (Security)",
+                summaryTitle: "Итоговая Стоимость",
+                sumDays: "Количество дней:",
+                sumGuests: "Туристов:",
+                sumPerDay: "Средняя цена за 1 день:",
+                sumGrandTotal: "Итоговая сумма в USD и сомах:",
+                pkgSub: "Готовые Программы",
+                pkgTitle: "Популярные Тур-Пакеты",
+                p1Duration: "3 Дня / 2 Ночи",
+                p1Route: "Бишкек - Ала-Арча - Бурана - Иссык-Куль",
+                p1f1: "VIP Трансфер из аэропорта",
+                p1f2: "Внедорожник 4x4",
+                p1f3: "Персональный гид",
+                p2Duration: "7 Дней / 6 Ночей",
+                p2Route: "Иссык-Куль - Барскоон - Каракол - Сон-Куль",
+                p2f1: "Полный VIP Сервис",
+                p2f2: "VIP Юрточный лагерь Сон-Куль",
+                p2f3: "Конное шоу и Беркутчи",
+                p3Duration: "10 Дней / 9 Ночей",
+                p3Route: "Бишкек - Иссык-Куль - Таш-Рабат - Ош",
+                p3f1: "Гранд-Экспедиция по Кыргызстану",
+                p3f2: "Личное сопровождение охраны",
+                p3f3: "Премиум отели и юрты",
+                pricePerPerson: "Цена за человека:",
+                bookBtn: "Забронировать",
+                bestSeller: "Хит Продаж",
+                foundersSub: "Основатели компании",
+                foundersTitle: "Руководство TURGO.KG",
+                foundersDesc: "Мы гарантируем высокий уровень безопасности, сервиса и гостеприимства.",
+                marselRole: "Co-Founder & Managing Director",
+                marselBio: "Управление стратегическим развитием, въездным туризмом и безопасностью гостей.",
+                aftandilRole: "Co-Founder & Operations Director",
+                aftandilBio: "Организация маршрутов, трансфера, логистики и координация гидов.",
+                footerDesc: "Туристическое агентство в Кыргызстане, предоставляющее VIP прием иностранных гостей, аренду 4x4, гидов и охрану.",
+                address: "Кыргызская Республика, г. Бишкек"
+            }
+        };
+
+        let currentLang = 'ky';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+
+            // Highlight Active Lang Button
+            ['ky', 'en', 'ru'].forEach(l => {
+                const btn = document.getElementById(`lang-${l}`);
+                if (l === lang) {
+                    btn.className = 'px-2.5 py-1 rounded text-xs font-bold transition bg-brand-gold text-brand-blue shadow';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded text-xs font-bold transition text-white hover:bg-white/20';
+                }
+            });
+
+            // Replace all localized strings dynamically
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18nData[lang] && i18nData[lang][key]) {
+                    el.innerText = i18nData[lang][key];
+                }
+            });
+
+            // Recalculate label values for days/guests text
+            calculateTotal();
+        }
+
+        // Price Calculator Logic
+        function calculateTotal() {
+            const days = parseInt(document.getElementById('days').value);
+            const guests = parseInt(document.getElementById('guests').value);
+
+            const srvTransfer = document.getElementById('srvTransfer').checked;
+            const srvCar = document.getElementById('srvCar').checked;
+            const srvGuide = document.getElementById('srvGuide').checked;
+            const srvStay = document.getElementById('srvStay').checked;
+            const srvSecurity = document.getElementById('srvSecurity').checked;
+
+            const dayUnit = currentLang === 'en' ? 'days' : (currentLang === 'ru' ? 'дней' : 'күн');
+            const guestUnit = currentLang === 'en' ? 'persons' : (currentLang === 'ru' ? 'чел.' : 'киши');
+
+            document.getElementById('daysVal').innerText = `${days} ${dayUnit}`;
+            document.getElementById('guestsVal').innerText = `${guests} ${guestUnit}`;
+            document.getElementById('summaryDays').innerText = `${days} ${dayUnit}`;
+            document.getElementById('summaryGuests').innerText = `${guests} ${guestUnit}`;
+
+            let dayRate = 0;
+            let oneTimeFee = 0;
+
+            if (srvTransfer) oneTimeFee += 50;
+            if (srvCar) dayRate += 120;
+            if (srvGuide) dayRate += 80;
+            if (srvStay) dayRate += (70 * guests);
+            if (srvSecurity) dayRate += 100;
+
+            const totalUSD = oneTimeFee + (dayRate * days);
+            const totalKGS = totalUSD * 89; // Rate $1 = 89 KGS
+
+            document.getElementById('perDayPrice').innerText = '$' + Math.round(dayRate);
+            document.getElementById('totalUSD').innerText = '$' + totalUSD.toLocaleString();
+            document.getElementById('totalKGS').innerText = '~ ' + totalKGS.toLocaleString() + ' KGS';
+        }
+
+        // WhatsApp / Telegram Booking Message Generator
+        function bookCalculatedTour(platform) {
+            const days = document.getElementById('days').value;
+            const guests = document.getElementById('guests').value;
+            const totalUSD = document.getElementById('totalUSD').innerText;
+
+            const message = `TURGO.KG Tour Inquiry:%0A` +
+                            `- Duration: ${days} days%0A` +
+                            `- Guests: ${guests}%0A` +
+                            `- Total Estimate: ${totalUSD}%0A` +
+                            `Please contact me with further details!`;
+
+            if (platform === 'whatsapp') {
+                window.open(`https://wa.me/996700123456?text=${message}`, '_blank');
+            } else if (platform === 'telegram') {
+                window.open(`https://t.me/turgo_kg?text=${message}`, '_blank');
+            }
+        }
+
+        // Copy HTML Code to Clipboard
+        function copyHTMLCode() {
+            const htmlContent = document.documentElement.outerHTML;
+            
+            // Clipboard fallback for frame restrictions
+            const dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = htmlContent;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            alert('TURGO.KG веб-сайтынын толук HTML коду копировать этилди! Телеграмдан же башка жактан жөнөтө аласыз.');
+        }
+
+        // Download .html file
+        function downloadHTMLFile() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'TURGO_KG_Website.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function closeModal() {
+            document.getElementById('codeModal').classList.add('hidden');
+        }
+
+        function handleQuickSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('inputName').value;
+            const phone = document.getElementById('inputPhone').value;
+            const dates = document.getElementById('inputDates').value;
+
+            const msg = `Жаңы сурам!%0AАты: ${name}%0AТел: ${phone}%0AДата: ${dates}`;
+            window.open(`https://wa.me/996700123456?text=${msg}`, '_blank');
+        }
+
+        // Mobile menu toggle
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Initialize on Load
+        window.onload = function() {
+            setLanguage('ky');
+        }
+    </script>
+
+</body></html>
